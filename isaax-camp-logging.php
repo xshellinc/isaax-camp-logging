@@ -19,17 +19,45 @@ require __DIR__.'/vendor/autoload.php';
  */
 add_action( 'wp_footer', function () {
 	$user = wp_get_current_user();
-	if( in_array('subscriber', $user->roles)){
-		// ログインしている user_id を使用してUser-ID を設定します。
-		$script = "<script>gtag('set', {'user_id': %s});</script>";
-		echo sprintf($script, $user->user_login);
-	}
+	$firebaseScript = <<<SCRIPT
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.8.1/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+		https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/7.8.1/firebase-analytics.js"></script>
+
+<script>
+	// Your web app's Firebase configuration
+	var firebaseConfig = {
+	apiKey: "AIzaSyBdp8eJ5n40jkEW045BvzVekj6Uu8LCUHg",
+	authDomain: "honki-iot-users-access.firebaseapp.com",
+	databaseURL: "https://honki-iot-users-access.firebaseio.com",
+	projectId: "honki-iot-users-access",
+	storageBucket: "honki-iot-users-access.appspot.com",
+	messagingSenderId: "824806803009",
+	appId: "1:824806803009:web:2019f5d9196d90279f68c0",
+	measurementId: "G-CNK0XQE6RP"
+	};
+	// Initialize Firebase
+	firebase.initializeApp(firebaseConfig);
+	firebase.analytics().setUserProperties({
+		user_id: %d,
+		user_role: '%s',
+		user_registered: '%s'
+	});
+</script>
+SCRIPT;
+	echo sprintf($firebaseScript,
+		$user->ID, $user->roles[0], $user->user_registered
+	);
 });
 
 /**
  * ユーザーログをFirebaseに残す
  */
 function isaaxLogging() {
+	return null;
 	if ( !defined('PATH_TO_FIREBASE_CREDENTIALS') ) {
 		return null;
 	}
